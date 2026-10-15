@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>정부 안내서비스 길잡이</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: 관공서 안내 게시판 — 상단 요약 띠, 분야 필터, 분야별 카드 격자, 하단 카드뉴스 갤러리 */
+:root {
+  --paper: #f5f6f8;
+  --surface: #ffffff;
+  --ink: #17202e;
+  --muted: #5b6577;
+  --line: #dde1e8;
+  --accent: #1b4a7a;          /* 카드뉴스 #1 남색에서 가져옴 */
+  --accent-soft: #e4ecf5;
+  --ok: #1f7a4a;  --ok-soft: #e3f2e9;
+  --no: #b2452c;  --no-soft: #f8e6e1;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper:#11161e; --surface:#19202b; --ink:#e7ebf1; --muted:#9aa5b6; --line:#2b3442;
+  --accent:#8fb6e2; --accent-soft:#1f3047; --ok:#7fd1a2; --ok-soft:#173226; --no:#f0a08b; --no-soft:#3a221c;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper:#11161e; --surface:#19202b; --ink:#e7ebf1; --muted:#9aa5b6; --line:#2b3442;
+  --accent:#8fb6e2; --accent-soft:#1f3047; --ok:#7fd1a2; --ok-soft:#173226; --no:#f0a08b; --no-soft:#3a221c;
+  color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.wrap { max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-block: 28px 24px; display: grid; gap: 14px; }
+.eyebrow { font-size: 13px; color: var(--muted); letter-spacing: .04em; }
+h1 { margin: 0; font-size: clamp(26px, 4vw, 36px); font-weight: 700; line-height: 1.25; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 4px 0 0; padding: 0; list-style: none; }
+.stats li { display: flex; align-items: baseline; gap: 6px; color: var(--muted); font-size: 14px; }
+.stats b { font-size: 22px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+main .wrap { padding-block: 28px 48px; display: grid; gap: 44px; }
+section > h2 { margin: 0 0 4px; font-size: 20px; font-weight: 700; }
+section > .sub { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+
+.search { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-bottom: 14px; }
+.search label { font-weight: 600; font-size: 14px; }
+.search input { font: inherit; flex: 1 1 260px; min-width: 0; max-width: 420px; padding: 9px 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.search output { font-size: 14px; color: var(--muted); }
+.search output b { color: var(--accent); font-size: 17px; font-variant-numeric: tabular-nums; }
+.empty { color: var(--muted); padding: 24px 0; margin: 0; }
+.rep { display: flex; gap: 8px; align-items: baseline; padding: 10px 18px; background: var(--accent-soft); font-size: 14px; }
+.rep span { color: var(--muted); font-size: 13px; }
+.rep b { color: var(--accent); }
+mark { background: transparent; color: var(--accent); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.filters button { font: inherit; font-size: 14px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); }
+.filters button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.filters button:focus-visible, .news button:focus-visible, .lb-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.filters .n { font-variant-numeric: tabular-nums; opacity: .75; margin-left: 4px; }
+
+.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 16px; align-items: start; }
+.cat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-width: 0; }
+.cat-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--line); }
+.cat-head h3 { margin: 0; font-size: 18px; }
+.cat-head .meta { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.svc { list-style: none; margin: 0; padding: 4px 0; }
+.svc li { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 10px 18px; }
+.svc li + li { border-top: 1px dashed var(--line); }
+.svc .name { font-weight: 600; min-width: 0; }
+.svc .org { grid-column: 1; font-size: 13px; color: var(--muted); }
+.svc .id { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-right: 6px; }
+.svc .right { grid-column: 2; grid-row: 1 / span 2; display: grid; justify-items: end; align-content: center; gap: 4px; }
+.pill { font-size: 12px; padding: 1px 8px; border-radius: 4px; font-weight: 600; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.no { background: var(--no-soft); color: var(--no); }
+.tel { font-family: var(--font-mono); font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.tel small { font-family: var(--font-body); color: var(--muted); margin-right: 4px; }
+
+.news { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 820px) { .news { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.news figure { margin: 0; }
+.news button { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 8px; overflow: hidden; }
+.news img { display: block; width: 100%; max-width: 100%; aspect-ratio: 1; object-fit: cover; transition: transform .25s ease; }
+.news button:hover img { transform: scale(1.03); }
+.news figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+.lightbox { position: fixed; inset: 0; background: rgba(8, 12, 18, .82); display: grid; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); z-index: 10; }
+.lightbox img { max-width: min(90vw, 640px); max-height: 80vh; border-radius: 8px; }
+.lb-close { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px));
+  font: inherit; font-size: 14px; padding: 6px 14px; border-radius: 6px; border: 0; background: #ffffff; color: #17202e; cursor: pointer; }
+
+footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+footer .wrap { padding-block: 20px 28px; }
+@media (prefers-reduced-motion: reduce) { .news img { transition: none; } }
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <span class="eyebrow">행정안전부 · 안내제도</span>
+    <h1>정부 안내서비스 길잡이</h1>
+    <p class="lede">민원·복지·세금 등 분야별 안내서비스와 소관기관, 콜센터 번호, 온라인 안내 가능 여부를 한곳에서 확인하세요.</p>
+    <ul class="stats" id="stats"></ul>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <section aria-labelledby="h-news">
+      <h2 id="h-news">생활안전 카드뉴스</h2>
+      <p class="sub">이미지를 누르면 크게 볼 수 있습니다.</p>
+      <div class="news">
+        <figure><button type="button" data-i="0" aria-label="#1 생활안전 캠페인 크게 보기"><img src="images/card1.png" width="540" height="540" alt="카드뉴스 1: 생활안전 캠페인 — 어린이·노인 보호, 4대 분야 추진, 참여 시설 확대"></button><figcaption>#1 생활안전 캠페인</figcaption></figure>
+        <figure><button type="button" data-i="1" aria-label="#2 어린이 안전 크게 보기"><img src="images/card2.png" width="540" height="540" alt="카드뉴스 2: 어린이 안전 — 어린이집 안전 점검, 등하굣길 캠페인, 실내 안전 교육"></button><figcaption>#2 어린이 안전</figcaption></figure>
+        <figure><button type="button" data-i="2" aria-label="#3 교통안전 크게 보기"><img src="images/card3.png" width="540" height="540" alt="카드뉴스 3: 교통안전 — 신호 준수 캠페인, 방어운전 교육, 어르신 보행자 보호"></button><figcaption>#3 교통안전</figcaption></figure>
+        <figure><button type="button" data-i="3" aria-label="#4 화재 예방 크게 보기"><img src="images/card4.png" width="540" height="540" alt="카드뉴스 4: 화재 예방 — 주거시설 점검, 전통시장 안전, 캠핑장 화재 예방"></button><figcaption>#4 화재 예방</figcaption></figure>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-cat">
+      <h2 id="h-cat">분야별 안내서비스</h2>
+      <p class="sub">카테고리 이름이나 문의기관으로 검색하거나, 분야 버튼을 눌러 좁혀 보세요.</p>
+      <div class="search">
+        <label for="q">검색</label>
+        <input id="q" type="search" placeholder="예: 복지, 지자체, 국토교통부" autocomplete="off">
+        <output id="count" for="q" aria-live="polite"></output>
+      </div>
+      <div class="filters" id="filters" role="group" aria-label="분야 선택"></div>
+      <div class="cats" id="cats"></div>
+      <p class="empty" id="empty" hidden>검색 결과가 없습니다. 다른 카테고리나 기관 이름으로 검색해 보세요.</p>
+    </section>
+  </div>
+</main>
+
+<footer><div class="wrap">자료: 안내서비스.csv (서비스 24건) · 카드뉴스 이미지 4장 · 콜센터 번호는 자료에 기재된 번호입니다.</div></footer>
+
+<div class="lightbox" id="lb" hidden role="dialog" aria-modal="true" aria-label="카드뉴스 크게 보기">
+  <button class="lb-close" id="lbClose" type="button">닫기</button>
+  <img id="lbImg" alt="">
+</div>
+
+<script>
+// 안내서비스.csv → [서비스ID, 서비스명, 카테고리, 소관기관, 온라인안내 가능, 콜센터]
+const DATA = [["A001","주민등록 발급 안내","민원","국토교통부",true,"1374"],["A002","전입신고 안내","민원","보건복지부",true,"1352"],["A003","인감증명 안내","민원","국토교통부",true,"1313"],["A004","민원접수 안내","민원","교육부",true,"1341"],["A005","정부24 이용 안내","민원","국토교통부",true,"1356"],["A006","기초연금 안내","복지","보건복지부",false,"1386"],["A007","복지급여 안내","복지","고용노동부",true,"1319"],["A008","장애인지원 안내","복지","보건복지부",true,"1337"],["A009","아동수당 안내","복지","지자체",true,"1326"],["A010","지방세 납부 안내","세금","보건복지부",true,"1357"],["A011","취득세 안내","세금","지자체",true,"1341"],["A012","재산세 안내","세금","지자체",true,"1317"],["A013","자동차등록 안내","교통","국토교통부",true,"1399"],["A014","운전면허 안내","교통","보건복지부",false,"1357"],["A015","주정차단속 안내","교통","국토교통부",true,"1367"],["A016","재난지원금 안내","재난","행정안전부",false,"1356"],["A017","대피소 안내","재난","국세청",true,"1359"],["A018","안전신고 안내","재난","국세청",true,"1357"],["A019","국민취업지원 안내","일자리","지자체",true,"1386"],["A020","구직급여 안내","일자리","국토교통부",false,"1350"],["A021","청년일자리 안내","일자리","지자체",true,"1392"],["A022","평생교육 안내","교육","지자체",true,"1379"],["A023","학자금 안내","교육","지자체",true,"1324"],["A024","교육비지원 안내","교육","행정안전부",true,"1368"]];
+
+const el = (t, cls, txt) => { const e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+
+// 분야별 묶기 (서비스 많은 순)
+const groups = {};
+DATA.forEach(r => (groups[r[2]] ||= []).push(r));
+const cats = Object.keys(groups).sort((a, b) => groups[b].length - groups[a].length || a.localeCompare(b, "ko"));
+
+// 요약
+const online = DATA.filter(r => r[4]).length;
+const orgs = new Set(DATA.map(r => r[3])).size;
+[["안내서비스", DATA.length + "개"], ["분야", cats.length + "개"], ["온라인 안내 가능", online + "개"], ["소관기관", orgs + "곳"]]
+  .forEach(([k, v]) => { const li = el("li"); li.append(el("span", null, k), el("b", null, v)); document.getElementById("stats").append(li); });
+
+// 대표 문의기관: 해당 분야에서 가장 많이 맡은 기관 (동률이면 먼저 나온 기관)
+function topOrg(items) {
+  const cnt = new Map(); items.forEach(r => cnt.set(r[3], (cnt.get(r[3]) || 0) + 1));
+  let best = null, bn = 0; cnt.forEach((n, o) => { if (n > bn) { best = o; bn = n; } });
+  return [best, bn];
+}
+function hl(text, q) {            // 검색어 강조
+  const f = document.createDocumentFragment();
+  const i = q ? text.indexOf(q) : -1;
+  if (i < 0) { f.append(text); return f; }
+  const m = el("mark", null, text.slice(i, i + q.length));
+  f.append(text.slice(0, i), m, text.slice(i + q.length)); return f;
+}
+
+// 분야 카드 렌더링 (분야 버튼 + 검색어 동시 적용)
+const catsBox = document.getElementById("cats"), qIn = document.getElementById("q");
+const countOut = document.getElementById("count"), emptyMsg = document.getElementById("empty");
+let curCat = "전체";
+function render() {
+  const q = qIn.value.trim();
+  catsBox.textContent = "";
+  let shown = 0;
+  cats.forEach(c => {
+    if (curCat !== "전체" && c !== curCat) return;
+    // 카테고리명이 맞으면 분야 전체, 아니면 문의기관이 맞는 서비스만
+    const items = !q || c.includes(q) ? groups[c] : groups[c].filter(r => r[3].includes(q));
+    if (!items.length) return;
+    shown += items.length;
+    const all = groups[c], on = all.filter(r => r[4]).length, [org, on2] = topOrg(all);
+    const card = el("article", "cat");
+    const head = el("div", "cat-head");
+    const h3 = el("h3"); h3.append(hl(c, q));
+    head.append(h3, el("span", "meta", `${all.length}건 · 온라인 ${on}/${all.length}`));
+    const rep = el("div", "rep"); const rb = el("b"); rb.append(hl(org, q));
+    rep.append(el("span", null, "대표 문의기관"), rb, el("span", null, `(${on2}건)`));
+    const ul = el("ul", "svc");
+    items.forEach(([id, name, , o, ok, tel]) => {
+      const li = el("li");
+      const n = el("span", "name"); n.append(el("span", "id", id), name);
+      const right = el("div", "right");
+      right.append(el("span", "pill " + (ok ? "ok" : "no"), ok ? "온라인 가능" : "전화·방문"));
+      const t = el("span", "tel"); t.append(el("small", null, "콜센터"), tel); right.append(t);
+      const os = el("span", "org", "문의 "); os.append(hl(o, q));
+      li.append(n, right, os); ul.append(li);
+    });
+    card.append(head, rep, ul); catsBox.append(card);
+  });
+  countOut.innerHTML = "";
+  countOut.append("결과 ", el("b", null, shown), "건");
+  emptyMsg.hidden = shown > 0;
+}
+
+// 분야 버튼
+const fBox = document.getElementById("filters");
+function setFilter(cat) {
+  curCat = cat;
+  fBox.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.cat === cat)));
+  render();
+}
+["전체", ...cats].forEach(c => {
+  const b = el("button", null, c); b.type = "button"; b.dataset.cat = c;
+  b.append(el("span", "n", c === "전체" ? DATA.length : groups[c].length));
+  b.addEventListener("click", () => setFilter(c)); fBox.append(b);
+});
+qIn.addEventListener("input", render);
+setFilter("전체");
+
+// 카드뉴스 크게 보기
+const lb = document.getElementById("lb"), lbImg = document.getElementById("lbImg");
+document.querySelectorAll(".news button").forEach(btn => btn.addEventListener("click", () => {
+  const img = btn.querySelector("img"); lbImg.src = img.src; lbImg.alt = img.alt; lb.hidden = false;
+  document.getElementById("lbClose").focus();
+}));
+const closeLb = () => { lb.hidden = true; };
+document.getElementById("lbClose").addEventListener("click", closeLb);
+lb.addEventListener("click", e => { if (e.target === lb) closeLb(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeLb(); });
+</script>
+
+</body>
+</html>
